@@ -3,38 +3,90 @@
  * Author / T.T
  * Time / 2016-10-30
  */
-
-var mysql = require('mysql');
-
-var pool = mysql.createPool({
-    host: '120.77.52.148',
-    user: 'root',
-    password: 'cl3bkm4fuc',
-    port: '3306',
-    database: 'pipa'
-});
-
+const MongoClient = require("mongodb").MongoClient;
+const config = require('./config');
+const dbOptions = { useNewUrlParser: true };
 module.exports = {
-    query: function (sql, callback) {
-
-        if (!sql) {
-            callback();
-            return;
-        }
-
-        pool.getConnection(function (err, connection) {
-            connection.query(sql, function (err, rows, fields) {
-
+  find: function(query) {
+    return new Promise(resolve => {
+      MongoClient.connect(
+        config.url,
+        dbOptions,
+        function(err, client) {
+          //连接到表 site
+          if (err) {
+            resolve(err);
+          } else {
+            const db = client.db(config.database);
+            var col = db.collection(query.collection);
+            col
+              .find(query.condition)
+              .project(query.projection)
+              .limit(query.limit)
+              .skip(query.skip)
+              .sort(query.sort)
+              .toArray(function(err, result) {
                 if (err) {
-                    console.log(err);
-                    callback(err, null);
-                    return;
-                };
-
-                connection.release();
-
-                callback(null, rows, fields);
+                  resolve(err);
+                  return;
+                }
+                resolve(result);
+                client.close();
+              });
+          }
+        }
+      );
+    });
+  },
+  insert: function(query) {
+    return new Promise(function(resolve) {
+      MongoClient.connect(
+        config.url,
+        dbOptions,
+        function(err, client) {
+          if (err) {
+            resolve(err);
+          } else {
+            const db = client.db(config.database);
+            var col = db.collection(query.collection);
+            col.insert(query.data, function(err, result) {
+              if (err) {
+                resolve(err);
+                return;
+              }
+              resolve(result);
+              client.close();
             });
-        });
-    }
-}
+          }
+        }
+      );
+    });
+  },
+  update: function(query) {
+    return new Promise(function(resolve) {
+      MongoClient.connect(
+        config.url,
+        dbOptions,
+        function(err, db) {
+          if (err) {
+            resolve(err);
+          } else {
+            const db = client.db(config.database);
+            var col = db.collection(query.collection);
+            col.update(query.condition, { $set: query.data }, function(
+              err,
+              result
+            ) {
+              if (err) {
+                resolve(err);
+                return;
+              }
+              resolve(result);
+              db.close();
+            });
+          }
+        }
+      );
+    });
+  }
+};

@@ -42,7 +42,6 @@ var time = require('./common/time');
 var py = require('./common/ctopy.js');
 //SQL连接
 var dbDevice = require('./data/dbDevice');
-var dbHeimu = require('./data/dbHeimu');
 //MQTT服务设置
 var mosca = require('mosca');
 var mqtt = new mosca.Server({
@@ -61,7 +60,7 @@ var clients = new Array();
 
 //MQTT服务username与password验证
 var authenticate = function (client, username, password, callback) {
-    var authorized = (username === 'p8iot' && password.toString() === 'fd3sak2v6');
+    var authorized = (username === 'ttiot' && password.toString() === 'cl3bkm4fuc');
     if (authorized) client.user = username;
     callback(null, authorized);
 }
@@ -94,51 +93,51 @@ mqtt.on('published', function (packet, client) {
             接收格式:
             {"text":"开5号灯", "location": {"building": "p8", "room": "404"}}
         */
-        case 'talk heimu':
-            if (packet.payload) {
-                var dataReceived = JSON.parse(packet.payload.toString());
-                console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] client "' + client.id + '" talk to heimu "' + JSON.stringify(dataReceived) + '"');
-                if (dataReceived.text) {
-                    dbHeimu.getHeimuSpeak(dataReceived.text, function (result) {
-                        //使用本地语言库
-                        if (result) {
-                            var dataHeimu = JSON.parse(result);
-                            switch (dataHeimu.type) {
-                                case 'set device':
-                                    for (var i = 0; i < dataHeimu.data.length; i++) {
-                                        device.set(dataReceived.location.building, dataReceived.location.room, dataHeimu.data[i].device, dataHeimu.data[i].value, client);
-                                    }
-                                    break;
-                                case 'speak':
-                                    mqtt.publish({
-                                        topic: client.id + ' talk heimu',
-                                        payload: '{"type":"voice-text", "data": "' + dataHeimu.data[parseInt(Math.random() * dataHeimu.data.length)] + '"}'
-                                    });
-                            }
-                        }
-                        //使用远程语言库
-                        else {
-                            var options = {
-                                host: 'www.tuling123.com',
-                                port: 80,
-                                path: '/openapi/api?key=98e83dafc5b0144484405bc7ecbcabdb&info=' + encodeURIComponent(dataReceived.text),
-                                method: 'GET'
-                            };
-                            var req = httpClient.get(options, function (res) {
-                                res.setEncoding('utf8');
-                                res.on('data', function (chunk) {
-                                    mqtt.publish({
-                                        topic: client.id + ' talk heimu',
-                                        payload: '{"type":"voice-text", "data": "' + JSON.parse(chunk).text + '"}'
-                                    });
-                                });
-                            });
+        // case 'talk':
+        //     if (packet.payload) {
+        //         var dataReceived = JSON.parse(packet.payload.toString());
+        //         console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] client "' + client.id + '" talk to heimu "' + JSON.stringify(dataReceived) + '"');
+        //         if (dataReceived.text) {
+        //             dbHeimu.getHeimuSpeak(dataReceived.text, function (result) {
+        //                 //使用本地语言库
+        //                 if (result) {
+        //                     var dataHeimu = JSON.parse(result);
+        //                     switch (dataHeimu.type) {
+        //                         case 'set device':
+        //                             for (var i = 0; i < dataHeimu.data.length; i++) {
+        //                                 device.set(dataReceived.location.building, dataReceived.location.room, dataHeimu.data[i].device, dataHeimu.data[i].value, client);
+        //                             }
+        //                             break;
+        //                         case 'speak':
+        //                             mqtt.publish({
+        //                                 topic: client.id + ' talk heimu',
+        //                                 payload: '{"type":"voice-text", "data": "' + dataHeimu.data[parseInt(Math.random() * dataHeimu.data.length)] + '"}'
+        //                             });
+        //                     }
+        //                 }
+        //                 //使用远程语言库
+        //                 else {
+        //                     var options = {
+        //                         host: 'www.tuling123.com',
+        //                         port: 80,
+        //                         path: '/openapi/api?key=98e83dafc5b0144484405bc7ecbcabdb&info=' + encodeURIComponent(dataReceived.text),
+        //                         method: 'GET'
+        //                     };
+        //                     var req = httpClient.get(options, function (res) {
+        //                         res.setEncoding('utf8');
+        //                         res.on('data', function (chunk) {
+        //                             mqtt.publish({
+        //                                 topic: client.id + ' talk heimu',
+        //                                 payload: '{"type":"voice-text", "data": "' + JSON.parse(chunk).text + '"}'
+        //                             });
+        //                         });
+        //                     });
                             
-                        }
-                    });
-                }
-            }
-            break;
+        //                 }
+        //             });
+        //         }
+        //     }
+        //     break;
         /*
         获取客户端列表
         topic: "get client"
