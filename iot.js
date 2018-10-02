@@ -35,26 +35,26 @@
  *
  ******/
 //Each Function Require
-var $ = require('underscore');
+//var $ = require('underscore');
 //Time
 var time = require('./common/time');
 //汉字转拼音
-var py = require('./common/ctopy.js');
+//var py = require('./common/ctopy.js');
 //SQL连接
-var dbDevice = require('./data/dbDevice');
+//var dbDevice = require('./data/dbDevice');
 //MQTT服务设置
 var mosca = require('mosca');
 var mqtt = new mosca.Server({
     port: 1883
 });
 //HTTP Client
-var httpClient = require('http');
+//var httpClient = require('http');
 //MQTT HTTP服务
-var http = require('http');
-var httpServer = http.createServer();
+//var http = require('http');
+//var httpServer = http.createServer();
 //WebSocket To MQTT
-mqtt.attachHttpServer(httpServer);
-httpServer.listen(9000);
+// mqtt.attachHttpServer(httpServer);
+//httpServer.listen(9000);
 //to save MQTT Clients
 var clients = new Array();
 
@@ -159,13 +159,13 @@ mqtt.on('published', function (packet, client) {
         [2] -- Device
         [3] -- Value
         */
-        case 'set device':
-            var data = packet.payload.toString().split(' ');
-            if (data.length >= 4) {
-                //通过builing, room, device查询设备的chip_id和command_code
-                device.set(data[0], data[1], data[2], data[3], client);
-            }
-            break;
+        // case 'set device':
+        //     var data = packet.payload.toString().split(' ');
+        //     if (data.length >= 4) {
+        //         //通过builing, room, device查询设备的chip_id和command_code
+        //         device.set(data[0], data[1], data[2], data[3], client);
+        //     }
+        //     break;
 
         default:
             console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] published topic "' + packet.topic.toString() + '" / message "' + packet.payload.toString() + '"');
@@ -177,36 +177,36 @@ process.on('uncaughtException', function (err) {
 });
 
 /////////////////////////////////// 公用方法 //////////////////////////////////
-var device = {
-    set: function (building, room, device, value, client) {
-        dbDevice.getChipIdAndCommandCode(building, room, device, function (err, rows) {
-            if (!err) {
-                var command_code = JSON.parse(rows.command_code);
-                var sendValue;
-                if (command_code.hasOwnProperty(value)) {
-                    sendValue = command_code[value];
-                }
-                else {
-                    sendValue = value;
-                }
-                if (client) {
-                    console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] client "' + client.id + '" control "' + device + '" to be "' + value + '"');
-                    console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] server sending "' + sendValue + '" to "' + rows.name + '"');
-                    if (clients.hasOwnProperty(rows.name)) {
-                        //以chipname为topic发布消息
-                        //消息内容为 message@client-id
-                        //让Device可以通过client-id为主题来反馈消息
-                        mqtt.publish({ topic: rows.name, payload: sendValue + '@' + client.id });
-                        console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] sent to "' + rows.name + '"');
-                    }
-                    else {
-                        console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] device "' + rows.name + '" is offline.');
-                    }
-                }
-            }
-            else {
-                console.log(err);
-            }
-        });
-    }
-}
+// var device = {
+//     set: function (building, room, device, value, client) {
+//         dbDevice.getChipIdAndCommandCode(building, room, device, function (err, rows) {
+//             if (!err) {
+//                 var command_code = JSON.parse(rows.command_code);
+//                 var sendValue;
+//                 if (command_code.hasOwnProperty(value)) {
+//                     sendValue = command_code[value];
+//                 }
+//                 else {
+//                     sendValue = value;
+//                 }
+//                 if (client) {
+//                     console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] client "' + client.id + '" control "' + device + '" to be "' + value + '"');
+//                     console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] server sending "' + sendValue + '" to "' + rows.name + '"');
+//                     if (clients.hasOwnProperty(rows.name)) {
+//                         //以chipname为topic发布消息
+//                         //消息内容为 message@client-id
+//                         //让Device可以通过client-id为主题来反馈消息
+//                         mqtt.publish({ topic: rows.name, payload: sendValue + '@' + client.id });
+//                         console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] sent to "' + rows.name + '"');
+//                     }
+//                     else {
+//                         console.log('[' + time.Now.getFull() + ' ' + time.Now.getTime() + '] device "' + rows.name + '" is offline.');
+//                     }
+//                 }
+//             }
+//             else {
+//                 console.log(err);
+//             }
+//         });
+//     }
+// }
